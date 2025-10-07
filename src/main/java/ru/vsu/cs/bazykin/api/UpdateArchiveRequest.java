@@ -1,9 +1,18 @@
 package ru.vsu.cs.bazykin.api;
 
 public class UpdateArchiveRequest {
-    private String content;
+    private String filename;
 
-    public String getContent() {
-        return content;
+    private String type;
+
+    public UpdateArchiveRequest(String filename, String type) {
+        this.filename = filename;
+        this.type = type;
     }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public String getType() {return type;}
 }

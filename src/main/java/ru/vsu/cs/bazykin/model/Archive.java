@@ -1,38 +1,40 @@
 package ru.vsu.cs.bazykin.model;
 
-import java.util.UUID;
-public class Archive {
-    private UUID id;
-    private String name;
-    private String content;
+import java.io.Serializable;
+import java.util.List;
 
-    public Archive(UUID id, String name, String content) {
+public class Archive implements Serializable {
+    private String id;
+    private List<String> content;
+    private String archivePath;
+
+    public Archive(String id, List<String> content, String archivePath) {
         this.id = id;
-        this.name = name;
         this.content = content;
+        this.archivePath = archivePath;
     }
 
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getContent() {
+    public List<String> getContent() {
         return content;
     }
 
-    public void setContent(String content) {
+    public void setContent(List<String> content) {
         this.content = content;
+    }
+
+    public String getArchivePath() {
+        return archivePath;
+    }
+
+    public void setArchivePath(String archivePath) {
+        this.archivePath = archivePath;
     }
 }

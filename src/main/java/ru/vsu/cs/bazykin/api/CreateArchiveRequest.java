@@ -1,14 +1,14 @@
 package ru.vsu.cs.bazykin.api;
 
 public class CreateArchiveRequest {
-    private String name;
-    private String content;
 
-    public String getName() {
-        return name;
+    private String archivePath;
+
+    public CreateArchiveRequest(String archivePath) {
+        this.archivePath = archivePath;
     }
 
-    public String getContent() {
-        return content;
+    public String getArchivePath() {
+        return archivePath;
     }
 }
