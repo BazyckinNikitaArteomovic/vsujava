@@ -43,6 +43,9 @@ public class ArchiveViewer {
                 case "5":
                     removeFileFromArchive();
                     break;
+                case "6":
+                    viewAllArchives();
+                    break;
                 case "0":
                     System.out.println("Выход из программы");
                     return;
@@ -60,6 +63,7 @@ public class ArchiveViewer {
         System.out.println("3. Просмотреть содержимое архива");
         System.out.println("4. Добавить файл в архив");
         System.out.println("5. Удалить файл из архива");
+        System.out.println("6. Просмотреть все архивы в базе");
         System.out.println("0. Выход");
         System.out.print("Выберите действие: ");
     }
@@ -86,11 +90,15 @@ public class ArchiveViewer {
             System.out.print("Неверно указан путь");
             return;
         }
-        List<String> archiveContent = FileEditor.readListFromFile(archivePath);
-        if (archiveContent != null && !archiveContent.isEmpty()){
-            this.currentArchive = service.getById(archiveContent.getFirst());
+        List<Archive> allArchives = service.getAll();
+        for (Archive archive : allArchives) {
+            if (archive.getArchivePath().equals(archivePath)) {
+                this.currentArchive = archive;
+                System.out.println("Архив открыт: " + archivePath);
+                return;
+            }
         }
-        System.out.println("Архив открыт: " + archivePath);
+        System.out.println("Архив не найден в базе: " + archivePath);
     }
 
     private void viewArchiveContents() {
@@ -112,8 +120,11 @@ public class ArchiveViewer {
         }
         System.out.print("Введите путь к файлу для добавления: ");
         String filePath = scanner.nextLine();
-        if (service.update(currentArchive.getId(), new UpdateArchiveRequest(filePath, "add")) != null){
+
+        Archive updatedArchive = service.update(currentArchive.getId(), new UpdateArchiveRequest(filePath, "add"));
+        if (updatedArchive != null){
             System.out.println("Файл успешно добавлен в архив");
+            this.currentArchive = updatedArchive;
         } else {
             System.out.println("Ошибка при добавлении файла");
         }
@@ -126,8 +137,25 @@ public class ArchiveViewer {
         }
         System.out.print("Введите имя файла для удаления: ");
         String fileName = scanner.nextLine();
-        if (service.update(currentArchive.getId(), new UpdateArchiveRequest(fileName, "delete")) != null){
+
+        Archive updatedArchive = service.update(currentArchive.getId(), new UpdateArchiveRequest(fileName, "delete"));
+        if (updatedArchive != null){
             System.out.println("Файл " + fileName + " удален из архива");
+            this.currentArchive = updatedArchive;
         } else System.out.println("Ошибка при удалении файла");
+    }
+
+    private void viewAllArchives() {
+        List<Archive> archives = service.getAll();
+        if (archives.isEmpty()) {
+            System.out.println("В базе нет архивов");
+            return;
+        }
+        System.out.println("=== Все архивы в базе ===");
+        for (Archive archive : archives) {
+            System.out.println("ID: " + archive.getId());
+            System.out.println("Путь: " + archive.getArchivePath());
+            System.out.println("---");
+        }
     }
 }

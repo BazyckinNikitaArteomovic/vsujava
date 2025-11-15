@@ -1,39 +1,82 @@
 package ru.vsu.cs.bazykin.repository;
 
+import ru.vsu.cs.bazykin.db.H2ConnectionManager;
 import ru.vsu.cs.bazykin.model.Archive;
 import ru.vsu.cs.bazykin.service.FileEditor;
 
-import java.util.HashMap;
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class ArchiveRepository {
-    private final String filename = "ArchiveData.ser";
-    private Map<String, Archive> archiveMap = new HashMap<>();
-
-    public void updateArchiveMap(){
-        archiveMap = FileEditor.loadArchiveMap(filename);
+    public void updateArchiveMap() {
+        // Not needed anymore - data is in DB
     }
 
     private void saveToFile() {
-        FileEditor.saveArchiveMap(archiveMap, filename);
+        // Removed - now using DB
     }
 
     public void save(Archive archive) {
-        archiveMap.put(archive.getId(), archive);
-        FileEditor.addOrUpdateArchive(archive.getId(), archive, filename);
+        String sql = "MERGE INTO archives (id, archive_path) VALUES (?, ?)";
+        try (Connection conn = H2ConnectionManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, archive.getId());
+            stmt.setString(2, archive.getArchivePath());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to save archive", e);
+        }
     }
 
     public Archive findById(String id) {
-        return archiveMap.get(id);
+        String sql = "SELECT * FROM archives WHERE id = ?";
+        try (Connection conn = H2ConnectionManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                List<String> content = FileEditor.readListFromFile(rs.getString("archive_path"));
+                return new Archive(
+                        rs.getString("id"),
+                        content != null ? content : new ArrayList<>(),
+                        rs.getString("archive_path")
+                );
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to find archive by id", e);
+        }
+        return null;
     }
 
     public void deleteById(String id) {
-        archiveMap.remove(id);
-        FileEditor.removeArchive(id, filename);
+        String sql = "DELETE FROM archives WHERE id = ?";
+        try (Connection conn = H2ConnectionManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to delete archive", e);
+        }
     }
 
     public List<Archive> getAll() {
-        return archiveMap.values().stream().toList();
+        List<Archive> archives = new ArrayList<>();
+        String sql = "SELECT * FROM archives";
+        try (Connection conn = H2ConnectionManager.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                List<String> content = FileEditor.readListFromFile(rs.getString("archive_path"));
+                archives.add(new Archive(
+                        rs.getString("id"),
+                        content != null ? content : new ArrayList<>(),
+                        rs.getString("archive_path")
+                ));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to get all archives", e);
+        }
+        return archives;
     }
 }

@@ -9,7 +9,6 @@ public class Main {
         ArchiveRepository repository = new ArchiveRepository();
         ArchiveService service = new ArchiveService(repository);
         ArchiveViewer viewer = new ArchiveViewer(service);
-        repository.updateArchiveMap();
         viewer.start();
     }
 }

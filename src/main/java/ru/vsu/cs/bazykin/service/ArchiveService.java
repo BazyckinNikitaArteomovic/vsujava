@@ -35,7 +35,6 @@ public class ArchiveService {
             FileEditor.writeListToFile(archiveRequest.getArchivePath(), content);
         }
 
-
         var archive = new Archive(
                 id,
                 content,
@@ -54,7 +53,8 @@ public class ArchiveService {
         if (archive == null) {
             return null;
         }
-        List<String> modifiedContent = archive.getContent();
+        List<String> modifiedContent = new ArrayList<>(archive.getContent());
+
         switch (archiveRequest.getType()){
             case "delete":
                 if (!modifiedContent.contains(archiveRequest.getFilename())){
@@ -70,13 +70,11 @@ public class ArchiveService {
                 modifiedContent.add(filename);
                 modifiedContent.add(fileContent);
                 break;
-
         }
         if (!FileEditor.writeListToFile(archive.getArchivePath(), modifiedContent)){
             return null;
         }
         archive.setContent(modifiedContent);
-
         repository.save(archive);
         return archive;
     }
